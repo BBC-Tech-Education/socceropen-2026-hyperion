@@ -207,9 +207,13 @@ void orbit(float &mDir, float &mSpd) {
     // Algorithm deciding how much "angle" to add to the current ball direction
     #if ORBIT
     #if CONTROL
+    // float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
+    // float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, -0.000000264461f*pow(dir, 4) + 0.0000136593f*pow(dir, 3) + 0.0183734f*dir*dir - 0.129586f*dir + 10.0f);
+    // float distMulti = 0.6f;
+    // float angleAddition = distMulti * ballAngDiff;
     float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, -0.000000264461f*pow(dir, 4) + 0.0000136593f*pow(dir, 3) + 0.0183734f*dir*dir - 0.129586f*dir + 10.0f);
-    float distMulti = 0.6f;
+    float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, 0.000000309786f*pow(dir, 4) + 0.0000534514f*pow(dir, 3) + 0.0163822f*dir*dir - 0.00204537f*dir + 10.0f);
+    float distMulti = 1.0f;
     float angleAddition = distMulti * ballAngDiff;
     #else
     float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
@@ -304,9 +308,9 @@ void run_defend() {
     float bearingCor = -correction.update(normaliseAngle180(bearing), 0.0);
 
     // Serial.println(defendGoal.mag);
-    if ((relBallDir < 10.0f || relBallDir > 350.0f) && relBallStr <= 200){
+    if ((relBallDir < 15.0f || relBallDir > 345.0f) && relBallStr <= 400){
         moveCor = -correction.update(normaliseAngle180(bearing), 0.0f);
-        motors.run(100, relBallDir, moveCor);
+        motors.run(100, 0, moveCor);
     } else if(ballBehind) {
         // Orbit and face forward if ball behind
         orbit(moveDir, moveSpd);
@@ -421,7 +425,10 @@ void loop() {
  
             // Update robot logic based on bluetooth
             // if (bt.get_role()) {
-            if(CONTROL) {
+            Serial.print(bt.get_role());
+            Serial.print("\t");
+            Serial.println(bt.get_other_role());
+            if(true) {
                 run_attack();
             } else {
                 run_defend();
@@ -433,4 +440,5 @@ void loop() {
     ballHandler.update(relBallStr);
     bt.update(motorsOn, ballData, fieldPosition, ballHandler.kicker_ready());
     lastMotorsOn = motorsOn;
+    // Serial.println(cam.get_attack().arg);
 }

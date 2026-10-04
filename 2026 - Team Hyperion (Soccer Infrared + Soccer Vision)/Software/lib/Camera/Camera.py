@@ -5,15 +5,15 @@ from pyb import UART
 
 widSize = 480
 robot = True # control true, chaos false
-draw = False
+draw = True
 
 if robot:
-    CENTER_X = widSize // 2 + 28
-    CENTER_Y = widSize // 2 - 55
-    MAX_RADIUS = 175
-    MIN_RADIUS = 50
-    INNER_CX = CENTER_X - 6
-    INNER_CY = CENTER_Y - 2
+    CENTER_X = widSize // 2 + 7
+    CENTER_Y = widSize // 2 - 60
+    MAX_RADIUS = 200
+    MIN_RADIUS = 70
+    INNER_CX = CENTER_X - 5
+    INNER_CY = CENTER_Y - 4
 else:
     CENTER_X = widSize // 2 + 14
     CENTER_Y = widSize // 2 - 32
@@ -39,10 +39,10 @@ uart = UART(3, 115200, timeout_char=100)
 
 #blue, yellow
 if robot:
-    goal_thresholds = [(0, 100, -128, 7, -128, -15), (39, 54, -5, 9, 16, 127)]
+    goal_thresholds = [(0, 100, -128, 7, -128, -15), (0, 100, -16, 22, 20, 127)]
     ball_threshold = [(38, 100, 27, 127, 40, 127)]
 else:
-    goal_thresholds = [(0, 40, -128, 25, -29, -14), (37, 100, -128, 26, 15, 47)]
+    goal_thresholds = [(0, 100, -128, 127, -128, -25), (0, 100, 6, 18, 19, 127)]
     ball_threshold = [(37, 100, 47, 127, 27, 127)]
 
 ROI_SIZE_BALL = 75
@@ -109,12 +109,12 @@ while True:
     yellow = blue = None
 
     for blob in img.find_blobs([goal_thresholds[0]], roi=yellow_roi, x_stride=4, y_stride=4,
-                               area_threshold=150, pixels_threshold=200, margin=23):
+                               area_threshold=150, pixels_threshold=150, margin=23):
         if in_valid_zone(blob) and (yellow is None or blob.area() > yellow.area()):
             yellow = blob
 
     for blob in img.find_blobs([goal_thresholds[1]], roi=blue_roi, x_stride=4, y_stride=4,
-                               area_threshold=150, pixels_threshold=200, margin=23):
+                               area_threshold=150, pixels_threshold=150, margin=23):
         if in_valid_zone(blob) and (blue is None or blob.area() > blue.area()):
             blue = blob
 
