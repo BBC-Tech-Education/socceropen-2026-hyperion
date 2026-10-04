@@ -95,7 +95,8 @@ void Camera::px_to_mm(Vect &v) {
     if(v.mag != 0.0f) {
         #if CONTROL
         // old mirror px->mm
-        mm = 25.15927*pow(1.04737, v.mag);
+        // mm = 25.15927*pow(1.04737, v.mag);
+        mm = 15.86018 * pow(1.0433,v.mag) + 50;
         #else
         // new mirror px->mm
         mm = 15.86018 * pow(1.0433,v.mag) + 50;
