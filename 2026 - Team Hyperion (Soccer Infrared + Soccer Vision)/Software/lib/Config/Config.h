@@ -5,7 +5,6 @@
 #define CONTROL 1 // control = 1, chaos = 0
 #define GOAL_TRACKING 1
 #define ORBIT 1 // enables or disables Orbit
-#define SURGE 1// enables or disables Surging
 #define LIGHT_SENSORS 1
 #define GOAL_TRACKING 1
 #define LOCALISATION (0 && GOAL_TRACKING)
@@ -50,25 +49,25 @@
 
 #if CONTROL
 //CONTROL
-    #define BASE_SPEED 70.0f //110.0f
-    #define SURGE_SPEED 90.0f //130.0f
-    #define BALL_STR_CLOSE_THRESH 50.0f //20.0f
-    #define BALL_CLOSE_STR 75.0f //65.0f
+    #define BASE_SPEED 70.0f
+    #define SURGE_SPEED 90.0f
+    #define BALL_STR_CLOSE_THRESH 50.0f
+    #define BALL_CLOSE_STR 75.0f
     #define DRIBBLER_STR_THRESH 75.0f
-    #define BALL_FRONT_MIN 354.0f //35.0f
-    #define BALL_FRONT_MAX 340.f //345.0f
-    #define ORBIT_TARGET_OFFSET 45.0f
-    #define ORBIT_DIR_MULTI 1.20636f //0.4f
-    #define ORBIT_DIR_EXP 0.0660224f //0.25f
-    #define ORBIT_DIST_MULTI 12.41625f
-    #define ORBIT_DIST_EXP -14.56002f
+    #define BALL_FRONT_MIN 10.0f
+    #define BALL_FRONT_MAX 350.f
     #define GOAL_DIST_FOR_KICKER_ENABLE 300.0f
+    #define CAM_CENTER_X 244
+    #define CAM_CENTER_Y 244
+
+    #define KP_ORBIT 1.0
+    #define KD_ORBIT 0.0
+    #define ORBIT_EXPONENT 1.0
 
     #define DEFEND_CAM_TARGET 450.0
-    #define DEFEND_MAX_DIST 465.07
     #define LS_THRESH 275
     #define KP_IMU 1.25
-    #define KD_IMU 0.04 // 0.04
+    #define KD_IMU 0.04
     #define KP_GOALT_ATK 1.0
     #define KD_GOALT_ATK 0.025
     #define KP_GOALT_DEF 1.0
@@ -80,34 +79,30 @@
     #define KD_LOC 0.0
     #define KP_LAV 100.0
     #define KD_LAV 0.0
-    #define COM_MODULE_THRESH 900
     #define LS_SLIDE_CONST 255.0f 
-    #define CAM_CENTER_X 244
-    #define CAM_CENTER_Y 244
 #else
 // CHAOS
-    #define BASE_SPEED 90.0f //110.0f
-    #define SURGE_SPEED 110.0f //130.0f
-    #define BALL_STR_CLOSE_THRESH 20.0f / 4.0f//20.0f
-    #define BALL_CLOSE_STR 80.0f / 4.0f //65.0f
+    #define BASE_SPEED 90.0f
+    #define SURGE_SPEED 110.0f
+    #define BALL_STR_CLOSE_THRESH 20.0f
+    #define BALL_CLOSE_STR 80.0f
     #define DRIBBLER_STR_THRESH 75.0f
-    #define BALL_FRONT_MIN 35.0f //35.0f
-    #define BALL_FRONT_MAX 330.f //345.0f
-    #define ORBIT_TARGET_OFFSET 45.0f
-    #define ORBIT_DIR_MULTI 1.20636f //0.4f
-    #define ORBIT_DIR_EXP 0.0660224f //0.25f
-    #define ORBIT_DIST_MULTI 1//12.41625f / 4.0f
-    #define ORBIT_DIST_EXP 1//-14.56002f
+    #define BALL_FRONT_MIN 35.0f
+    #define BALL_FRONT_MAX 330.f
     #define GOAL_DIST_FOR_KICKER_ENABLE 70.0f
+    #define CAM_CENTER_X 244
+    #define CAM_CENTER_Y 244
+
+    #define KP_ORBIT 1.0
+    #define KD_ORBIT 0.0
+    #define ORBIT_EXPONENT 1.0
 
     #define DEFEND_CAM_TARGET 450.0f
-    #define DEFEND_MAX_DIST 97.0f
     #define LS_THRESH 275
     #define KP_IMU 1.25
-    #define KD_IMU 0.04 // 0.04
+    #define KD_IMU 0.04
     #define KP_GOALT_ATK 0.8
     #define KD_GOALT_ATK 0.04
-    
     #define KP_GOALT_DEF 1.25
     #define KD_GOALT_DEF 0.04
     #define KP_HOZT 1.5
@@ -117,10 +112,7 @@
     #define KD_LOC 0.0
     #define KP_LAV 100.0
     #define KD_LAV 0.0
-    #define COM_MODULE_THRESH 900
     #define LS_SLIDE_CONST 255.0f
-    #define CAM_CENTER_X 244
-    #define CAM_CENTER_Y 244
 #endif
 
 // --- MAGIC NUMBERS & BEHAVIOR CONSTANTS ---

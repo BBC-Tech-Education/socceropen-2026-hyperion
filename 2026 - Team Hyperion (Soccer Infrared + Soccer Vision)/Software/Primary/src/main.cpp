@@ -29,6 +29,7 @@ Bluetooth bt;
 
 // PIDs
 PID correction(KP_IMU, 0.0, KD_IMU, IMU_PID_MAX);
+PID orbitPID(KP_ORBIT, 0.0, KD_ORBIT, 90.0);
 PID goalTrackAttack(KP_GOALT_ATK, 0.0, KD_GOALT_ATK, GOALT_PID_MAX);
 PID goalTrackDefend(KP_GOALT_DEF, 0.0, KD_GOALT_DEF, GOALT_PID_MAX);
 PID horizontal(KP_HOZT, 0.0, 0.0);
@@ -199,41 +200,23 @@ void orbit(float &mDir, float &mSpd) {
     float absBallDir = float_mod(relBallDir + bearing, 360.0f);
     float orbitTarget = 0.0f;
 
-    // Adjust the "target" based on where the goal is
     if (attackGoal.exists() && GOAL_TRACKING) {
         orbitTarget = float_mod(bearing, 360.0f);
     }
 
     // Algorithm deciding how much "angle" to add to the current ball direction
     #if ORBIT
-    #if CONTROL
-    // float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    // float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, -0.000000264461f*pow(dir, 4) + 0.0000136593f*pow(dir, 3) + 0.0183734f*dir*dir - 0.129586f*dir + 10.0f);
-    // float distMulti = 0.6f;
-    // float angleAddition = distMulti * ballAngDiff;
-    float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, 0.000000309786f*pow(dir, 4) + 0.0000534514f*pow(dir, 3) + 0.0163822f*dir*dir - 0.00204537f*dir + 10.0f);
-    float distMulti = 1.0f;
-    float angleAddition = distMulti * ballAngDiff;
-    #else
-    float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, 0.000000309786f*pow(dir, 4) + 0.0000534514f*pow(dir, 3) + 0.0163822f*dir*dir - 0.00204537f*dir + 10.0f);
-    float distMulti = 0.8f;
-    float angleAddition = distMulti * ballAngDiff;
-    #endif
-
+    float rawError = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
+    float error = copysign(pow(error, ORBIT_EXPONENT), error);
+    float angleAddition = orbitPID.update(error, 0.0f);
     // Move forward at full speed if the robot sees the ball infront of it, close enough, or if the light gate is triggered
-    #if SURGE
-    if((((absBallDir < BALL_FRONT_MIN && absBallDir > BALL_FRONT_MAX) && (relBallStr < BALL_STR_CLOSE_THRESH)) || ballHandler.photogate_triggered())) {
+    if((((absBallDir < BALL_FRONT_MIN || absBallDir > BALL_FRONT_MAX) && (relBallStr < BALL_STR_CLOSE_THRESH)) || ballHandler.photogate_triggered())) {
         mDir = 0.0f;
         mSpd = SURGE_SPEED;
     } else {
         mDir = float_mod(absBallDir + angleAddition, 360.0f);
-        mSpd = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (1.0f - fabs(angleAddition / 90.0f));
+        mSpd = BASE_SPEED + ((SURGE_SPEED - BASE_SPEED) * min(fabs(angleAddition) / 90.0f, 1.0f));
     }
-    #else
-    mDir = float_mod(absBallDir + angleAddition, 360.0f);
-    #endif
     #endif
 }
 
