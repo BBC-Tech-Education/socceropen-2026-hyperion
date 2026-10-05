@@ -306,34 +306,33 @@ void run_defend() {
     float moveCor = 0.0f;
     bool ballBehind = (relBallDir > 90.0f && relBallDir < 270.0f) && ballData.exists();
     float bearingCor = -correction.update(normaliseAngle180(bearing), 0.0);
-
-    // Serial.println(defendGoal.mag);
-    if ((relBallDir < 15.0f || relBallDir > 345.0f) && relBallStr <= 400){
-        moveCor = -correction.update(normaliseAngle180(bearing), 0.0f);
-        motors.run(100, 0, moveCor);
-    } else if(ballBehind) {
+    if(ballBehind) {
         // Orbit and face forward if ball behind
         orbit(moveDir, moveSpd);
         moveCor = bearingCor;
-        motors.run(moveSpd, float_mod(moveDir - bearing, 360.0f), moveCor);
+        moveDir = float_mod(moveDir - bearing, 360.0f);
+        moveSpd = SURGE_SPEED;
     } else {
         if(defendGoal.exists()) {
             // Rotational PID, face towards the goal
-            float goalAngle = float_mod(defendGoal.arg + 180.0f, 360.0f);
-            moveCor = goalTrackDefend.update(normaliseAngle180(goalAngle), 0.0f);
             // Vertical PID, stay optimal distance away from goal
             float vert = vertCam.update(defendGoal.mag, DEFEND_CAM_TARGET);
             // Hotizontal PID, move towards ball
             // If the ball does not exist, center to the middle of the field
-            float hozt = horizontal.update((relBallStr != 0.0f) ? -normaliseAngle180(relBallDir) : normaliseAngle180(bearing), 0.0f);
+            float hozt = horizontal.update((ballData.exists()) ? -normaliseAngle180(relBallDir) : normaliseAngle180(bearing), 0.0f);
             //hozt = 0.0f;
             // float hozt = horizontal.update(-normaliseAngle180(relBallDir), 0.0f);
             // Kick when the ball is in the capture zone
-            if(onField) {
-                ballHandler.kick();
-            }
+
+            float goalAngle = float_mod(defendGoal.arg + 180.0f, 360.0f);
+            moveCor = goalTrackDefend.update(normaliseAngle180(goalAngle), 0.0f);
             moveSpd = sqrtf(hozt*hozt + vert*vert);
             moveDir = (atan2f(hozt, vert) * RAD_TO_DEG);
+
+            if(((relBallDir < 10.0f || relBallDir > 350.0f) && relBallStr < 350.0f) && ballData.exists()) {
+                moveDir = 0.0f;
+                moveSpd = SURGE_SPEED;
+            }
         } else {
             // If we cannot see the defend goal, move backwards
             moveSpd = 70.0f;
@@ -428,7 +427,7 @@ void loop() {
             Serial.print(bt.get_role());
             Serial.print("\t");
             Serial.println(bt.get_other_role());
-            if(true) {
+            if(!CONTROL) {
                 run_attack();
             } else {
                 run_defend();

@@ -64,17 +64,17 @@
     #define ORBIT_DIST_EXP -14.56002f
     #define GOAL_DIST_FOR_KICKER_ENABLE 300.0f
 
-    #define DEFEND_CAM_TARGET 550.0
+    #define DEFEND_CAM_TARGET 450.0
     #define DEFEND_MAX_DIST 465.07
     #define LS_THRESH 275
     #define KP_IMU 1.25
     #define KD_IMU 0.04 // 0.04
     #define KP_GOALT_ATK 1.0
     #define KD_GOALT_ATK 0.025
-    #define KP_GOALT_DEF 1.25
-    #define KD_GOALT_DEF 0.04
+    #define KP_GOALT_DEF 1.0
+    #define KD_GOALT_DEF 0.025
     #define KP_HOZT 1.5
-    #define KP_CVERT 0.15
+    #define KP_CVERT 0.25
     #define KD_CVERT 0.0
     #define KP_LOC 0.25
     #define KD_LOC 0.0
