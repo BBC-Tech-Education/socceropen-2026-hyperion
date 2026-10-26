@@ -3,13 +3,13 @@
 
 /////////////////////////////////// ROBOT ID ///////////////////////////////////
 #define CONTROL 1 // control = 1, chaos = 0
-#define GOAL_TRACKING 1
+#define GOAL_TRACKING 0
 #define ORBIT 1 // enables or disables Orbit
 #define SURGE 1// enables or disables Surging
 #define LIGHT_SENSORS 1
-#define GOAL_TRACKING 1
-#define LOCALISATION (0 && GOAL_TRACKING)
-#define DRIBBLER 0
+#define GOAL_TRACKING 0
+#define LOCALISATION (1 && GOAL_TRACKING)
+#define DRIBBLER 1
 
 //////////////////////////////////// DEBUG ////////////////////////////////////
 
@@ -50,8 +50,8 @@
 
 #if CONTROL
 //CONTROL
-    #define BASE_SPEED 70.0f //110.0f
-    #define SURGE_SPEED 90.0f //130.0f
+    #define BASE_SPEED 40.0f //110.0f
+    #define SURGE_SPEED 60.0f //130.0f
     #define BALL_STR_CLOSE_THRESH 50.0f //20.0f
     #define BALL_CLOSE_STR 75.0f //65.0f
     #define DRIBBLER_STR_THRESH 75.0f
@@ -64,7 +64,7 @@
     #define ORBIT_DIST_EXP -14.56002f
     #define GOAL_DIST_FOR_KICKER_ENABLE 300.0f
 
-    #define DEFEND_CAM_TARGET 550.0
+    #define DEFEND_CAM_TARGET 450.0
     #define DEFEND_MAX_DIST 465.07
     #define LS_THRESH 275
     #define KP_IMU 1.25
@@ -78,6 +78,7 @@
     #define KD_CVERT 0.0
     #define KP_LOC 0.25
     #define KD_LOC 0.0
+    #define KP_LOCDEF 0.15
     #define KP_LAV 100.0
     #define KD_LAV 0.0
     #define COM_MODULE_THRESH 900
@@ -115,6 +116,7 @@
     #define KD_CVERT 0.0
     #define KP_LOC 0.25f
     #define KD_LOC 0.0
+    #define KP_LOCDEF 0.15
     #define KP_LAV 100.0
     #define KD_LAV 0.0
     #define COM_MODULE_THRESH 900
@@ -206,7 +208,7 @@
 #define KICKER_REQUIRED_VOLT       40.0f
 #define KICKER_VOLTAGE_STABALISER  17.05498   // calibrate later
 #define KICKER_VOLTAGE_OFFSET      0.0  // calibrate later
-#define DRIBBLER_SPEED 100.0f
+#define DRIBBLER_SPEED 200.0f
 
 /////////////////////////////// FIELD DIMENSIONS ///////////////////////////////
 #define FIELD_LENGTH_MM 1700

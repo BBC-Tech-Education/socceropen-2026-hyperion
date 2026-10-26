@@ -35,6 +35,7 @@ PID horizontal(KP_HOZT, 0.0, 0.0);
 PID vertCam(KP_CVERT, 0.0, KD_CVERT);
 PID lineAvoid(KP_LAV, 0.0, KD_LAV, LAV_PID_MAX);
 PID localise(KP_LOC, 0.0, KD_LOC, LOC_PID_MAX);
+PID localiseDefender(KP_LOCDEF, 0.0, 0.0F, IMU_PID_MAX);
 // VOLTAGE DIVIDERS
 VoltageDivider battery(ROBOT_VD_PIN, ROBOT_VOLTAGE_STABALISER, ROBOT_VOLTAGE_OFFSET);
  
@@ -308,16 +309,20 @@ void run_defend() {
     float bearingCor = -correction.update(normaliseAngle180(bearing), 0.0);
 
     // Serial.println(defendGoal.mag);
-    if ((relBallDir < 15.0f || relBallDir > 345.0f) && relBallStr <= 400){
-        moveCor = -correction.update(normaliseAngle180(bearing), 0.0f);
-        motors.run(100, 0, moveCor);
-    } else if(ballBehind) {
+    // if ((relBallDir < 15.0f || relBallDir > 345.0f) && relBallStr <= 400){
+    //     moveCor = -correction.update(normaliseAngle180(bearing), 0.0f);
+    //     motors.run(100, 0, moveCor);
+    // } else if(ballBehind) {
+    if(ballBehind) {
         // Orbit and face forward if ball behind
         orbit(moveDir, moveSpd);
         moveCor = bearingCor;
         motors.run(moveSpd, float_mod(moveDir - bearing, 360.0f), moveCor);
     } else {
-        if(defendGoal.exists()) {
+        if(((relBallDir < 10.0f || relBallDir > 350.0f) && relBallStr < 400.0f) && ballData.exists()) {
+            moveDir = 0.0f;
+            moveSpd = SURGE_SPEED;
+        } else if(defendGoal.exists()) {
             // Rotational PID, face towards the goal
             float goalAngle = float_mod(defendGoal.arg + 180.0f, 360.0f);
             moveCor = goalTrackDefend.update(normaliseAngle180(goalAngle), 0.0f);
@@ -325,7 +330,13 @@ void run_defend() {
             float vert = vertCam.update(defendGoal.mag, DEFEND_CAM_TARGET);
             // Hotizontal PID, move towards ball
             // If the ball does not exist, center to the middle of the field
-            float hozt = horizontal.update((relBallStr != 0.0f) ? -normaliseAngle180(relBallDir) : normaliseAngle180(bearing), 0.0f);
+            // float hozt = horizontal.update((relBallStr != 0.0f) ? -normaliseAngle180(relBallDir) : normaliseAngle180(bearing), 0.0f);
+            float hozt = 0.0f;
+            if(ballData.exists()) {
+                hozt = horizontal.update(-normaliseAngle180(relBallDir), 0.0f);
+            } else {
+                hozt = localiseDefender.update(normaliseAngle180(bearing), 0.0f);
+            }
             //hozt = 0.0f;
             // float hozt = horizontal.update(-normaliseAngle180(relBallDir), 0.0f);
             // Kick when the ball is in the capture zone
@@ -422,23 +433,26 @@ void loop() {
             // Update light sensor board data
             ls.update();
             update_absolute_line();
- 
-            // Update robot logic based on bluetooth
-            // if (bt.get_role()) {
+
+            bt.update(motorsOn, ballData, fieldPosition, 0);
+
             Serial.print(bt.get_role());
             Serial.print("\t");
             Serial.println(bt.get_other_role());
+ 
+            // Update robot logic based on bluetooth
+            // if (bt.get_role()) {
             if(true) {
                 run_attack();
             } else {
-                run_defend();
+                //run_defend();
             }
             break;
         }
     };
  
     ballHandler.update(relBallStr);
-    bt.update(motorsOn, ballData, fieldPosition, ballHandler.kicker_ready());
     lastMotorsOn = motorsOn;
     // Serial.println(cam.get_attack().arg);
+
 }
