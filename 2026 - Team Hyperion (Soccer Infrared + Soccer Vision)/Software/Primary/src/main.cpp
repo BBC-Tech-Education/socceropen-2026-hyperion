@@ -29,6 +29,7 @@ Bluetooth bt;
 
 // PIDs
 PID correction(KP_IMU, 0.0, KD_IMU, IMU_PID_MAX);
+PID orbitPID(KP_ORBIT, 0.0, KD_ORBIT, 90.0);
 PID goalTrackAttack(KP_GOALT_ATK, 0.0, KD_GOALT_ATK, GOALT_PID_MAX);
 PID goalTrackDefend(KP_GOALT_DEF, 0.0, KD_GOALT_DEF, GOALT_PID_MAX);
 PID horizontal(KP_HOZT, 0.0, 0.0);
@@ -200,41 +201,23 @@ void orbit(float &mDir, float &mSpd) {
     float absBallDir = float_mod(relBallDir + bearing, 360.0f);
     float orbitTarget = 0.0f;
 
-    // Adjust the "target" based on where the goal is
     if (attackGoal.exists() && GOAL_TRACKING) {
         orbitTarget = float_mod(bearing, 360.0f);
     }
 
     // Algorithm deciding how much "angle" to add to the current ball direction
     #if ORBIT
-    #if CONTROL
-    // float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    // float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, -0.000000264461f*pow(dir, 4) + 0.0000136593f*pow(dir, 3) + 0.0183734f*dir*dir - 0.129586f*dir + 10.0f);
-    // float distMulti = 0.6f;
-    // float angleAddition = distMulti * ballAngDiff;
-    float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, 0.000000309786f*pow(dir, 4) + 0.0000534514f*pow(dir, 3) + 0.0163822f*dir*dir - 0.00204537f*dir + 10.0f);
-    float distMulti = 1.0f;
-    float angleAddition = distMulti * ballAngDiff;
-    #else
-    float dir = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
-    float ballAngDiff = (dir > 0.0f ? 1.0f : -1.0f) * fmin(90.0f, 0.000000309786f*pow(dir, 4) + 0.0000534514f*pow(dir, 3) + 0.0163822f*dir*dir - 0.00204537f*dir + 10.0f);
-    float distMulti = 0.8f;
-    float angleAddition = distMulti * ballAngDiff;
-    #endif
-
+    float rawError = normaliseAngle180(float_mod(absBallDir - orbitTarget, 360.0f));
+    float error = copysign(pow(error, ORBIT_EXPONENT), error);
+    float angleAddition = orbitPID.update(error, 0.0f);
     // Move forward at full speed if the robot sees the ball infront of it, close enough, or if the light gate is triggered
-    #if SURGE
-    if((((absBallDir < BALL_FRONT_MIN && absBallDir > BALL_FRONT_MAX) && (relBallStr < BALL_STR_CLOSE_THRESH)) || ballHandler.photogate_triggered())) {
+    if((((absBallDir < BALL_FRONT_MIN || absBallDir > BALL_FRONT_MAX) && (relBallStr < BALL_STR_CLOSE_THRESH)) || ballHandler.photogate_triggered())) {
         mDir = 0.0f;
         mSpd = SURGE_SPEED;
     } else {
         mDir = float_mod(absBallDir + angleAddition, 360.0f);
-        mSpd = BASE_SPEED + (SURGE_SPEED - BASE_SPEED) * (1.0f - fabs(angleAddition / 90.0f));
+        mSpd = BASE_SPEED + ((SURGE_SPEED - BASE_SPEED) * min(fabs(angleAddition) / 90.0f, 1.0f));
     }
-    #else
-    mDir = float_mod(absBallDir + angleAddition, 360.0f);
-    #endif
     #endif
 }
 
@@ -307,25 +290,18 @@ void run_defend() {
     float moveCor = 0.0f;
     bool ballBehind = (relBallDir > 90.0f && relBallDir < 270.0f) && ballData.exists();
     float bearingCor = -correction.update(normaliseAngle180(bearing), 0.0);
-
-    // Serial.println(defendGoal.mag);
-    // if ((relBallDir < 15.0f || relBallDir > 345.0f) && relBallStr <= 400){
-    //     moveCor = -correction.update(normaliseAngle180(bearing), 0.0f);
-    //     motors.run(100, 0, moveCor);
-    // } else if(ballBehind) {
     if(ballBehind) {
         // Orbit and face forward if ball behind
         orbit(moveDir, moveSpd);
         moveCor = bearingCor;
-        motors.run(moveSpd, float_mod(moveDir - bearing, 360.0f), moveCor);
+        moveDir = float_mod(moveDir - bearing, 360.0f);
+        moveSpd = SURGE_SPEED;
     } else {
         if(((relBallDir < 10.0f || relBallDir > 350.0f) && relBallStr < 400.0f) && ballData.exists()) {
             moveDir = 0.0f;
             moveSpd = SURGE_SPEED;
         } else if(defendGoal.exists()) {
             // Rotational PID, face towards the goal
-            float goalAngle = float_mod(defendGoal.arg + 180.0f, 360.0f);
-            moveCor = goalTrackDefend.update(normaliseAngle180(goalAngle), 0.0f);
             // Vertical PID, stay optimal distance away from goal
             float vert = vertCam.update(defendGoal.mag, DEFEND_CAM_TARGET);
             // Hotizontal PID, move towards ball
@@ -340,11 +316,16 @@ void run_defend() {
             //hozt = 0.0f;
             // float hozt = horizontal.update(-normaliseAngle180(relBallDir), 0.0f);
             // Kick when the ball is in the capture zone
-            if(onField) {
-                ballHandler.kick();
-            }
+
+            float goalAngle = float_mod(defendGoal.arg + 180.0f, 360.0f);
+            moveCor = goalTrackDefend.update(normaliseAngle180(goalAngle), 0.0f);
             moveSpd = sqrtf(hozt*hozt + vert*vert);
             moveDir = (atan2f(hozt, vert) * RAD_TO_DEG);
+
+            if(((relBallDir < 10.0f || relBallDir > 350.0f) && relBallStr < 350.0f) && ballData.exists()) {
+                moveDir = 0.0f;
+                moveSpd = SURGE_SPEED;
+            }
         } else {
             // If we cannot see the defend goal, move backwards
             moveSpd = 70.0f;
