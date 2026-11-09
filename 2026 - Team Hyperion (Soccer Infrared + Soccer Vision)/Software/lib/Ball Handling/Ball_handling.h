@@ -17,12 +17,12 @@ public:
     bool kicker_ready();
     bool can_kick();
     uint8_t get_current_kicks() { return kicks; };
-
+    void run_dribbler(float spd);   
     uint16_t photogateThresh = 0;
    
 private:
     void update_caps_led();
-    void run_dribbler(float spd);
+    
  
     VoltageDivider kickerVd;
     Timer pulseTimer;
@@ -32,6 +32,7 @@ private:
     uint8_t kicks;
     bool isKicking;
     bool cooldownActive;
+    float rollspe = 0.0f;
 };
 
 #endif

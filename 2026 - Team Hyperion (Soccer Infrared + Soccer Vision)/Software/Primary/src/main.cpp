@@ -57,6 +57,7 @@ float bearing;
 float relBallDir = 0.0f;
 float relBallStr = 0;
 int surgeTimer = -1;
+float rollSpeed = 0.0f;
  
 float relLineAngle = -1.0f;
 float relLineSize = -1.0f;
@@ -351,6 +352,30 @@ void update_battery_led() {
     }
 }
 
+void hide_and_seek() {
+    float moveDir = 0.0f;
+    float moveSpd = 0.0f;
+    float moveCor = 0.0f;
+    /// meho losento
+    if(ballHandler.photogate_triggered()) {
+        if (attackGoal.exists()) {
+            float goalAngle = normaliseAngle180(float_mod(attackGoal.arg, 360.0f));
+            if(goalAngle >= 0.0f and goalAngle <= 180.0f) {
+                if(rollSpeed > -100) {rollSpeed -= 0.5f;}
+            } else if(goalAngle <= 360.0f and goalAngle > 180.0f) {
+                if(rollSpeed < 100) {rollSpeed += 0.5f;}
+            }
+        }
+        float bearingCor = -correction.update(normaliseAngle180(bearing-rollSpeed), 0.0);
+        moveCor = bearingCor;
+    } else {
+        rollSpeed = 0.0f;
+        float bearingCor = -correction.update(normaliseAngle180(bearing), 0.0);
+        moveCor = bearingCor;
+    }
+    motors.run(moveSpd, moveDir, moveCor);    
+}
+
 void setup() {
     state = STATE_IDLE;
 
@@ -424,7 +449,8 @@ void loop() {
             // Update robot logic based on bluetooth
             // if (bt.get_role()) {
             if(true) {
-                run_attack();
+                //run_attack();
+                hide_and_seek();
             } else {
                 //run_defend();
             }

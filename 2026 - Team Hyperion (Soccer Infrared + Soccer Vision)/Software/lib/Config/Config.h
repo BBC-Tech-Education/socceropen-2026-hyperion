@@ -53,13 +53,15 @@
     #define SURGE_SPEED 90.0f
     #define BALL_STR_CLOSE_THRESH 50.0f
     #define BALL_CLOSE_STR 75.0f
-    #define DRIBBLER_STR_THRESH 75.0f
+    #define DRIBBLER_STR_THRESH 85.0f
     #define BALL_FRONT_MIN 10.0f
     #define BALL_FRONT_MAX 350.f
     #define GOAL_DIST_FOR_KICKER_ENABLE 300.0f
     #define CAM_CENTER_X 244
     #define CAM_CENTER_Y 244
 
+    #define DEFEND_CAM_TARGET 450.0
+    #define DEFEND_MAX_DIST 465.07
     #define KP_ORBIT 1.0
     #define KD_ORBIT 0.0
     #define ORBIT_EXPONENT 1.0

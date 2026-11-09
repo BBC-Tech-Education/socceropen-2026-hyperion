@@ -90,10 +90,12 @@ void BallHandling::update(float ballStr) {
     }
 
     #if DRIBBLER
-    if ((!isKicking && ((ballStr < DRIBBLER_STR_THRESH) && ballStr != 0.0f) || photogate_triggered())) {
-        run_dribbler(DRIBBLER_SPEED);
+    if (photogate_triggered()) {
+        rollspe = 200.0f;
+        run_dribbler(rollspe);
     } else {
-        run_dribbler(0.0f);
+        if(rollspe > 0.0f) {rollspe -= 0.75f;}
+        run_dribbler(rollspe);
     }
     #endif
 }
