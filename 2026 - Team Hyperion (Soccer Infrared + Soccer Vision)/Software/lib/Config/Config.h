@@ -3,7 +3,7 @@
 
 /////////////////////////////////// ROBOT ID ///////////////////////////////////
 #define CONTROL 1 // control = 1, chaos = 0
-#define GOAL_TRACKING 0
+#define GOAL_TRACKING 1
 #define ORBIT 1 // enables or disables Orbit
 #define LIGHT_SENSORS 1
 #define GOAL_TRACKING 0

@@ -58,6 +58,8 @@ float relBallDir = 0.0f;
 float relBallStr = 0;
 int surgeTimer = -1;
 float rollSpeed = 0.0f;
+float hideTimer = 0.0f;
+bool canFlick = false;
  
 float relLineAngle = -1.0f;
 float relLineSize = -1.0f;
@@ -356,21 +358,25 @@ void hide_and_seek() {
     float moveDir = 0.0f;
     float moveSpd = 0.0f;
     float moveCor = 0.0f;
-    /// meho losento
-    if(ballHandler.photogate_triggered()) {
-        if (attackGoal.exists()) {
+    hideTimer--;
+    Serial.println(canFlick);
+    if(ballHandler.photogate_triggered() || hideTimer >= 0.0f) {
+        if(ballHandler.photogate_triggered()) {hideTimer = 600.0f;}
+        if (true) {
             float goalAngle = normaliseAngle180(float_mod(attackGoal.arg, 360.0f));
-            if(goalAngle >= 0.0f and goalAngle <= 180.0f) {
-                if(rollSpeed > -100) {rollSpeed -= 0.5f;}
-            } else if(goalAngle <= 360.0f and goalAngle > 180.0f) {
-                if(rollSpeed < 100) {rollSpeed += 0.5f;}
+            if(goalAngle >= -1.0f) {
+                if(rollSpeed > -200) {rollSpeed -= 0.5f;}
+            } else if(goalAngle < -1.0f) {
+                if(rollSpeed < 200) {rollSpeed += 0.5f;}
             }
         }
-        float bearingCor = -correction.update(normaliseAngle180(bearing-rollSpeed), 0.0);
+        float bearingCor = -correction.update(normaliseAngle180(bearing-(rollSpeed/200)*160), 0.0);
+        if((((rollSpeed/200)*160) >= 150 || ((rollSpeed/200)*160) <= -150) && (attackGoal.mag > 500.0f || attackGoal.mag == 0.0f)){moveSpd = (rollSpeed/200)*80;}
         moveCor = bearingCor;
     } else {
-        rollSpeed = 0.0f;
-        float bearingCor = -correction.update(normaliseAngle180(bearing), 0.0);
+        if(rollSpeed > 0){rollSpeed -= 0.5f;}
+        else if(rollSpeed < 0){rollSpeed += 0.5f;}
+        float bearingCor = -correction.update(normaliseAngle180(bearing-(rollSpeed/200)*160), 0.0);
         moveCor = bearingCor;
     }
     motors.run(moveSpd, moveDir, moveCor);    
@@ -442,13 +448,13 @@ void loop() {
 
             bt.update(motorsOn, ballData, fieldPosition, 0);
 
-            Serial.print(bt.get_role());
-            Serial.print("\t");
-            Serial.println(bt.get_other_role());
+            // Serial.print(bt.get_role());
+            // Serial.print("\t");
+            // Serial.println(bt.get_other_role());
  
             // Update robot logic based on bluetooth
             // if (bt.get_role()) {
-            if(true) {
+            if(canFlick == false) {
                 //run_attack();
                 hide_and_seek();
             } else {
@@ -460,6 +466,6 @@ void loop() {
  
     ballHandler.update(relBallStr);
     lastMotorsOn = motorsOn;
-    // Serial.println(cam.get_attack().arg);
+    
 
 }
