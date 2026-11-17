@@ -1,6 +1,0 @@
-Ultrasonic ball tracking details
-
-
-Middle - 85.7cm
-Right - 3cm
-Left - 101cm
